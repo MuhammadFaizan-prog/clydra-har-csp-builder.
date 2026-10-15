@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HAR to CSP Builder by Clydara: turn a browser recording into a reviewable Content-Security-Policy</title>
+    <meta name="description" content="Load a HAR file recorded in your browser and get a Content-Security-Policy built from the requests your pages actually made, with the evidence behind every source. Runs in your browser; the file is not uploaded." />
+    <link rel="icon" type="image/png" href="/clydara-logo.png" />
+    <meta name="theme-color" content="#ffffff" />
+  </head>
+  <body class="landing">
+    <a class="skip" href="#content">Skip to content</a>
+    <header class="site-nav" id="top">
+      <div class="wrap nav-inner">
+        <a class="product" href="/" aria-label="HAR to CSP Builder, home">
+          <span class="product-glyph" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="product-name">HAR <span aria-hidden="true">→</span><span class="sr-only">to</span> CSP Builder</span>
+        </a>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links">Menu</button>
+        <nav class="nav-links" id="nav-links" aria-label="Page">
+          <a href="#how">How it works</a>
+          <a href="#example">Example</a>
+          <a href="#privacy">Privacy &amp; limits</a>
+          <a href="#faq">FAQ</a>
+          <a class="btn btn-primary btn-sm" href="/tool.html">Open the builder</a>
+        </nav>
+        <a class="built-by" href="https://www.clydralab.com/" target="_blank" rel="noopener" aria-label="Built by Clydara (opens clydralab.com in a new tab)">
+          <img src="/clydara-logo.png" alt="" width="22" height="22" />
+          <span>Built by Clydara</span>
+        </a>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-copy">
+          <p class="eyebrow">Content-Security-Policy from a HAR recording</p>
+          <h1 id="hero-title">Turn a recorded browser session into a CSP you can review source by source.</h1>
+          <div class="hero-side">
+          <p class="hero-lede">
+            For developers adding a Content-Security-Policy to a site they run. Record the pages that matter in DevTools,
+            load the HAR file, decide which sources stay, then copy a Report-Only header for your server or host.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="/tool.html" id="hero-open">Open the builder</a>
+            <a class="btn btn-quiet" href="/tool.html#sample" id="hero-sample">Load the sample recording</a>
+          </div>
+          <p class="hero-note">The file is read in your browser tab and never uploaded.</p>
+          </div>
+        </div>
+
+        <figure class="wrap trace" aria-labelledby="trace-title">
+          <figcaption class="trace-head">
+            <div>
+              <h2 id="trace-title" class="trace-title">Requests, sources, policy</h2>
+              <p class="trace-sub">Real output from the builder, using the synthetic sample recording of <code>shop.example.com</code>. Hover or focus a source to trace it.</p>
+            </div>
+            <span class="sample-tag">Sample data</span>
+          </figcaption>
+          <div class="trace-grid" id="trace" aria-busy="true">
+            <div class="trace-col" aria-labelledby="col-req">
+              <h3 class="col-title" id="col-req">Recorded requests <span class="col-count" id="count-req"></span></h3>
+              <ol class="req-list" id="req-list"><li class="loading-row">Analysing the sample recording…</li></ol>
+            </div>
+            <div class="trace-col" aria-labelledby="col-src">
+              <h3 class="col-title" id="col-src">Allowed sources <span class="col-count" id="count-src"></span></h3>
+              <ul class="src-list" id="src-list"></ul>
+            </div>
+            <div class="trace-col" aria-labelledby="col-pol">
+              <h3 class="col-title" id="col-pol">Policy <span class="col-count" id="count-pol"></span></h3>
+              <ol class="pol-list" id="pol-list"></ol>
+            </div>
+            <svg class="trace-links" id="trace-links" aria-hidden="true" focusable="false"></svg>
+          </div>
+          <p class="trace-foot" id="trace-foot" role="status" aria-live="polite"></p>
+        </figure>
+      </section>
+
+      <section class="band" id="example" aria-labelledby="example-title">
+        <div class="wrap result">
+          <div class="result-intro">
+            <p class="eyebrow">What you receive</p>
+            <h2 id="example-title">A policy you can read, with a reason for every source</h2>
+            <p>
+              This is the exact header the builder produces for the sample recording, before any review.
+              Three details show what the builder does for you, and what it leaves for you to decide.
+            </p>
+            <a class="text-link" href="/tool.html#sample">Open this example in the builder <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="result-body">
+            <pre class="policy-read" id="sample-policy" tabindex="0" aria-label="Generated policy for the sample recording">Building the sample policy…</pre>
+            <ol class="callouts" id="callouts" aria-label="Notes on the sample policy"></ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">From DevTools to a deployable header in four moves</h2>
+          <ol class="flow">
+            <li>
+              <h3>Record the flows that matter</h3>
+              <p>Open DevTools → <b>Network</b>, tick <b>Preserve log</b>, then sign in, browse and check out the way a real visitor would.</p>
+            </li>
+            <li>
+              <h3>Export and load the HAR</h3>
+              <p>Right-click the request list → <b>Save all as HAR</b>. Load one file or several; recordings are merged into one policy.</p>
+            </li>
+            <li>
+              <h3>Review each source</h3>
+              <p>Every origin the pages used is listed under the directive it needs, with the requests behind it. Exclude anything you don't trust.</p>
+            </li>
+            <li>
+              <h3>Ship Report-Only, then enforce</h3>
+              <p>Copy the header in Report-Only mode, watch for violation reports, then switch to Enforce when the reports go quiet.</p>
+            </li>
+          </ol>
+          <dl class="glossary" aria-label="Terms used in the builder">
+            <div><dt>HAR</dt><dd>HTTP Archive: a JSON file of every request your browser made while DevTools was recording.</dd></div>
+            <div><dt>Directive</dt><dd>One rule in the policy, such as <code>script-src</code> for JavaScript or <code>img-src</code> for images.</dd></div>
+            <div><dt>Source</dt><dd>Where a directive allows loading from: <code>'self'</code> (your origin), a host such as <code>https://js.stripe.com</code>, or <code>data:</code>.</dd></div>
+            <div><dt>Report-Only</dt><dd>The browser reports what the policy would block without blocking anything. The safe first deployment.</dd></div>
+          </dl>
+          <p class="inline-cta"><a class="btn btn-primary" href="/tool.html">Open the builder</a> <a class="text-link" href="/tool.html#sample">or start from the sample recording</a></p>
+        </div>
+      </section>
+
+      <section class="section section-alt" id="use-cases" aria-labelledby="uses-title">
+        <div class="wrap">
+          <p class="eyebrow">Where it helps</p>
+          <h2 id="uses-title">Situations it was built for</h2>
+          <div class="uses-wrap" role="region" aria-label="Use cases" tabindex="0">
+            <table class="uses">
+              <thead>
+                <tr><th scope="col">Situation</th><th scope="col">What you record</th><th scope="col">What you get</th><th scope="col">Still your decision</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">A first CSP for a signed-in app</th>
+                  <td>Sign in and visit the main screens. Public scanners can't reach these pages; your browser can.</td>
+                  <td>Every host those screens loaded, grouped by directive, plus SHA-256 hashes for inline scripts in the recorded HTML.</td>
+                  <td>Whether each analytics or tag host belongs in the policy at all.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Checkout with an embedded payment form</th>
+                  <td>Go from cart to the payment step.</td>
+                  <td>The provider's <code>script-src</code>, <code>frame-src</code> and <code>connect-src</code> entries, and the <code>form-action</code> target.</td>
+                  <td>Whether to compare them with the provider's published CSP guidance before you ship.</td>
+                </tr>
+                <tr>
+                  <th scope="row">A static site on Vercel or Netlify</th>
+                  <td>Click through the site once.</td>
+                  <td>A <code>vercel.json</code> headers block or a Netlify <code>_headers</code> file.</td>
+                  <td>Merging it into your existing configuration.</td>
+                </tr>
+                <tr>
+                  <th scope="row">Reviewing third-party scripts</th>
+                  <td>Load every page that runs a tag, widget or embed.</td>
+                  <td>The full list of script hosts, with plain-HTTP and public-CDN hosts flagged for review.</td>
+                  <td>Self-host, hash, or drop each flagged script.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="privacy" aria-labelledby="privacy-title">
+        <div class="wrap split">
+          <div>
+            <p class="eyebrow">Privacy</p>
+            <h2 id="privacy-title">The recording stays in your tab</h2>
+            <ul class="facts">
+              <li>The HAR file is read with the browser's File API. There is no server, account or upload.</li>
+              <li>Only request URLs, methods, status codes, request types and your own pages' HTML are kept in memory. Cookies, auth headers and other response bodies are not copied out of the file.</li>
+              <li>The builder ships its own strict policy (<code>connect-src 'self'</code>), so the page itself cannot send data to another host. The only request it makes is for the sample file, from this site.</li>
+              <li>Nothing is stored. Reloading or closing the tab clears the recording.</li>
+            </ul>
+          </div>
+          <div>
+            <p class="eyebrow">Limits</p>
+            <h2>What a recording can't tell you</h2>
+            <ul class="facts facts-limits">
+              <li>A HAR only covers the flows you clicked through. Pages, roles and features you didn't visit are missing from the policy.</li>
+              <li>Inline scripts are hashed only when the HAR includes page content. Scripts that change on every load need server-generated nonces instead.</li>
+              <li>Inline event handlers (<code>onclick=</code>) and <code>style=""</code> attributes are reported, not allowed. Move them into files or classes.</li>
+              <li>Sources are host-level. The builder does not narrow them to paths or generate <code>'strict-dynamic'</code> policies.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-alt" id="faq" aria-labelledby="faq-title">
+        <div class="wrap faq-wrap">
+          <div>
+            <p class="eyebrow">FAQ</p>
+            <h2 id="faq-title">Practical questions</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Which files can I load?</summary>
+              <p>Standard HAR files from Chrome, Edge or Firefox DevTools, or any tool that writes HAR. Up to 40 MB per file. Load several to merge recordings of different flows into one policy.</p>
+            </details>
+            <details>
+              <summary>How does it decide which directive a request needs?</summary>
+              <p>In order of trust: the browser's own <code>Sec-Fetch-Dest</code> header, Chromium's recorded resource type, the response MIME type, then the file extension. Anything still unknown falls back to <code>connect-src</code>. Browser-extension requests and CORS preflights are ignored.</p>
+            </details>
+            <details>
+              <summary>Is the generated policy safe to enforce straight away?</summary>
+              <p>Treat it as a draft. It allows what the recording saw, nothing more, so a flow you didn't record will break under enforcement. Deploy it as <code>Content-Security-Policy-Report-Only</code> first and add a report URL to see what it would block.</p>
+            </details>
+            <details>
+              <summary>Which export formats are there?</summary>
+              <p>A raw HTTP header, Nginx <code>add_header</code>, Apache <code>Header always set</code>, a <code>vercel.json</code> headers block, a Netlify <code>_headers</code> file, and an HTML <code>&lt;meta&gt;</code> tag. The meta tag can't carry <code>frame-ancestors</code> or <code>report-uri</code> and can't be report-only; the builder removes those and says so.</p>
+            </details>
+            <details>
+              <summary>Does my HAR file contain secrets?</summary>
+              <p>It can: cookies, tokens and form data are often recorded. This builder reads it locally and keeps only the fields listed under Privacy, but treat the file itself as sensitive and delete it when you're done.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title">
+        <div class="wrap closing-inner">
+          <h2 id="closing-title">Have a HAR file ready?</h2>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-on-dark" href="/tool.html">Open the builder</a>
+            <a class="btn btn-quiet-dark" href="/tool.html#sample">Try the sample recording</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <div class="wrap foot-inner">
+        <p>HAR to CSP Builder. Runs in your browser. No accounts, uploads or tracking.</p>
+        <a class="built-by" href="https://www.clydralab.com/" target="_blank" rel="noopener" aria-label="Built by Clydara (opens clydralab.com in a new tab)">
+          <img src="/clydara-logo.png" alt="" width="22" height="22" />
+          <span>Built by Clydara</span>
+        </a>
+      </div>
+    </footer>
+    <script type="module" src="/src/landing.ts"></script>
+  </body>
+</html>
