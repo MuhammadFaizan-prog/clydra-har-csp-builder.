@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Builder · HAR to CSP Builder by Clydara</title>
+    <meta name="description" content="Load HAR recordings, review every source with its evidence, and export a Content-Security-Policy. Runs in your browser." />
+    <link rel="icon" type="image/png" href="/clydara-logo.png" />
+    <meta name="theme-color" content="#ffffff" />
+  </head>
+  <body class="app">
+    <a class="skip" href="#main">Skip to the builder</a>
+    <header class="appbar">
+      <a class="product" href="/" id="home-link" aria-label="HAR to CSP Builder, product page">
+        <span class="product-glyph" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="product-name">HAR <span aria-hidden="true">→</span><span class="sr-only">to</span> CSP Builder</span>
+      </a>
+      <nav class="stages" aria-label="Builder steps">
+        <ol id="stages">
+          <li data-stage="load"><a href="#load" aria-current="step">Load recordings</a></li>
+          <li data-stage="review"><a href="#review" aria-disabled="true">Review sources</a></li>
+          <li data-stage="inspect"><a href="#inspect" aria-disabled="true">Inspect policy</a></li>
+          <li data-stage="export"><a href="#export" aria-disabled="true">Export</a></li>
+        </ol>
+      </nav>
+      <div class="appbar-end">
+        <a class="appbar-link" href="/#how">Guide</a>
+        <a class="built-by" href="https://www.clydralab.com/" target="_blank" rel="noopener" aria-label="Built by Clydara (opens clydralab.com in a new tab)">
+          <img src="/clydara-logo.png" alt="" width="22" height="22" />
+          <span>Built by Clydara</span>
+        </a>
+      </div>
+    </header>
+
+    <main id="main" class="workspace">
+      <h1 class="sr-only">HAR to CSP Builder workspace</h1>
+
+      <!-- 1. Load -->
+      <section class="load" id="load" aria-labelledby="load-title">
+        <div class="load-empty" id="load-empty">
+          <div class="load-main">
+            <h2 id="load-title" class="pane-title">Load recordings</h2>
+            <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-help error">
+              <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0-12-4 4m4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p class="drop-title"><strong>Drop .har files here</strong> or <span class="linkish">choose files</span></p>
+              <p class="drop-help" id="drop-help">One or several files, up to 40 MB each. Several recordings are merged into one policy.</p>
+            </div>
+            <input type="file" id="file" accept=".har,.json,application/json" multiple hidden aria-label="Choose HAR files" />
+            <dl class="reads">
+              <div><dt>Read from the file</dt><dd>Request URLs, methods, status codes, request types, and the HTML of your own pages (to hash inline scripts).</dd></div>
+              <div><dt>Not copied out</dt><dd>Cookies, authorization headers, form data and other response bodies. Nothing is stored after you close the tab.</dd></div>
+            </dl>
+          </div>
+          <aside class="load-side" aria-label="Getting a recording">
+            <h3>No recording yet?</h3>
+            <p>Start from the synthetic sample: a small shop with a payment form, analytics, a video embed and a few deliberate problems.</p>
+            <button type="button" class="btn btn-secondary" id="sample">Load the sample recording</button>
+            <h3 class="mt">Record your own HAR</h3>
+            <ol class="howto">
+              <li>Open your site, then DevTools (F12) → <b>Network</b>.</li>
+              <li>Tick <b>Preserve log</b>, reload, and click through the flows you care about.</li>
+              <li>Right-click the request list → <b>Save all as HAR</b>. Include response content if offered, so inline scripts can be hashed.</li>
+            </ol>
+            <p class="side-note">The file is read in this tab and never uploaded.</p>
+          </aside>
+        </div>
+
+        <div class="recording" id="recording" hidden>
+          <div class="rec-id">
+            <h2 class="pane-title" id="rec-title">Recording</h2>
+            <p class="rec-files" id="rec-files"></p>
+          </div>
+          <dl class="rec-stats" id="rec-stats"></dl>
+          <div class="rec-origin">
+            <label for="origin">Your site's origin</label>
+            <input type="text" id="origin" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="origin-help" />
+            <p class="field-help" id="origin-help">Requests to this origin become <code>'self'</code>.</p>
+          </div>
+          <div class="rec-actions">
+            <button type="button" class="btn btn-small" id="add-files">Add recording</button>
+            <button type="button" class="btn btn-small" id="replace-files">Replace</button>
+            <button type="button" class="btn btn-small btn-plain" id="clear">Clear</button>
+          </div>
+          <p class="rec-coverage" id="rec-coverage">This recording covers only the pages and flows it captured. Anything you didn't click through is not in the policy.</p>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+        <div id="error" class="alert" role="alert" hidden></div>
+      </section>
+
+      <!-- 2 + 3 + 4 -->
+      <div class="bench" id="results" hidden>
+        <nav class="jump" aria-label="Jump to">
+          <a href="#review">Sources</a><a href="#inspect">Policy</a><a href="#export">Export</a>
+        </nav>
+
+        <section class="review" id="review" aria-labelledby="review-title">
+          <div class="review-head">
+            <div>
+              <h2 id="review-title" class="pane-title">Review sources</h2>
+              <p class="pane-sub">Each row is one source the recording needed. Untick to leave it out; open a row for the requests behind it.</p>
+            </div>
+            <div class="filters" id="filters" role="group" aria-label="Filter sources"></div>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="review-title">
+            <table id="evidence" class="evidence">
+              <caption class="sr-only">Sources found in the recording, grouped by directive. Untick a source to leave it out of the policy.</caption>
+              <thead>
+                <tr>
+                  <th scope="col" class="c-use">Include</th>
+                  <th scope="col" class="c-src">Source</th>
+                  <th scope="col" class="c-num">Requests</th>
+                  <th scope="col" class="c-pol">In policy</th>
+                  <th scope="col" class="c-more"><span class="sr-only">Details</span></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="review-foot" id="review-foot"></p>
+        </section>
+
+        <aside class="inspect" id="inspect" aria-labelledby="inspect-title">
+          <div class="inspect-head">
+            <h2 id="inspect-title" class="pane-title">Inspect policy</h2>
+            <fieldset class="mode" id="mode-field">
+              <legend class="sr-only">Policy mode</legend>
+              <label><input type="radio" name="mode" value="report-only" checked /><span>Report-Only</span></label>
+              <label><input type="radio" name="mode" value="enforce" /><span>Enforce</span></label>
+            </fieldset>
+          </div>
+          <p class="mode-help" id="mode-help"></p>
+          <ol class="policy-lines" id="policy-lines" aria-label="Policy directives"></ol>
+          <div id="inline-notes"></div>
+
+          <details class="settings" id="settings">
+            <summary>Policy settings</summary>
+            <div class="settings-body">
+              <fieldset class="field">
+                <legend>Who may frame your pages <code>frame-ancestors</code></legend>
+                <label><input type="radio" name="fa" value="'self'" checked /> Only my site</label>
+                <label><input type="radio" name="fa" value="'none'" /> Nobody</label>
+              </fieldset>
+              <div class="field">
+                <label class="check"><input type="checkbox" id="hashes" checked aria-describedby="hashes-help" /> Allow recorded inline scripts and styles by SHA-256 hash</label>
+                <p class="field-help" id="hashes-help"></p>
+              </div>
+              <div class="field">
+                <label class="check"><input type="checkbox" id="upgrade" aria-describedby="upgrade-help" /> Add <code>upgrade-insecure-requests</code></label>
+                <p class="field-help" id="upgrade-help">Asks the browser to fetch <code>http:</code> URLs over HTTPS. Only works if those hosts serve HTTPS.</p>
+              </div>
+              <div class="field">
+                <label for="report">Violation report URL <span class="opt">(optional)</span></label>
+                <input type="url" id="report" placeholder="https://example.com/csp-reports" autocomplete="off" aria-describedby="report-help" />
+                <p class="field-help" id="report-help">Must be https. Added as <code>report-uri</code>, so Report-Only mode tells you what it would block.</p>
+              </div>
+            </div>
+          </details>
+
+          <section class="export" id="export" aria-labelledby="export-title">
+            <h3 id="export-title" class="sub-title">Export</h3>
+            <div class="tabs" role="tablist" aria-label="Output format" id="tabs"></div>
+            <div class="export-panel" role="tabpanel" id="export-panel">
+              <label class="sr-only" for="policy">Exported policy text</label>
+              <textarea id="policy" readonly rows="7" spellcheck="false"></textarea>
+              <ul id="export-notes" class="export-notes"></ul>
+              <div class="export-actions">
+                <button type="button" class="btn btn-primary" id="copy">Copy</button>
+                <button type="button" class="btn btn-secondary" id="download">Download <span class="fname" id="fname"></span></button>
+                <span id="copy-status" class="copy-status" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="app-foot">
+      <p>Runs in your browser. Nothing is uploaded or stored; reloading clears the recording.</p>
+      <a href="https://www.clydralab.com/" target="_blank" rel="noopener" class="built-by" aria-label="Built by Clydara (opens clydralab.com in a new tab)">
+        <img src="/clydara-logo.png" alt="" width="20" height="20" /> <span>Built by Clydara</span>
+      </a>
+    </footer>
+    <script type="module" src="/src/tool.ts"></script>
+  </body>
+</html>
